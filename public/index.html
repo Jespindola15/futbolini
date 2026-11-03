@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Fútbol arcade pixelado con física tipo HaxBall, estadios reales, torneos y salas online.">
+<meta name="theme-color" content="#0b1712">
+<title>Picadito Pixel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%232f7d36'/%3E%3Ccircle cx='8' cy='8' r='4' fill='%23fff'/%3E%3Crect x='7' y='7' width='2' height='2' fill='%23111'/%3E%3C/svg%3E">
+<style>html,body{margin:0;padding:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="screen" aria-label="Campo de juego"></canvas>
+
+  <div id="hud" hidden>
+    <div class="hud-top" id="hudStadium">ESTADIO</div>
+    <div class="hud-row">
+      <div class="hud-team"><canvas class="hud-badge" id="chipA" width="12" height="14"></canvas><span id="abbrA">ARG</span></div>
+      <div class="hud-score" id="hudScore"><span id="scoreA">0</span><span class="sep">-</span><span id="scoreB">0</span></div>
+      <div class="hud-team"><span id="abbrB">BRA</span><canvas class="hud-badge" id="chipB" width="12" height="14"></canvas></div>
+      <div class="hud-clock" id="clock">3:00</div>
+      <div class="hud-agg" id="agg" hidden></div>
+    </div>
+  </div>
+  <div id="banner" hidden><div class="big" id="bannerBig"></div><div class="small" id="bannerSmall"></div></div>
+  <div id="hint" hidden>Esc pausa · M sonido</div>
+
+  <!-- controles táctiles (celular / tablet) -->
+  <div id="touch" hidden>
+    <div id="tzone" aria-hidden="true"></div>
+    <div id="tjoy" hidden><div id="tknob"></div></div>
+    <div id="tbtns">
+      <button type="button" class="tb tb-kick" data-b="kick">PATEAR</button>
+      <button type="button" class="tb tb-lob" data-b="lob">GLOBO</button>
+      <button type="button" class="tb tb-slide" data-b="slide">BARRIDA</button>
+      <button type="button" class="tb tb-sprint" data-b="sprint">SPRINT</button>
+      <button type="button" class="tb tb-skill" data-b="skill">FILI</button>
+    </div>
+    <button type="button" id="tpause" aria-label="Pausa">II</button>
+  </div>
+  <div id="rotate" hidden>Girá el celular para jugar más cómodo</div>
+
+  <!-- MENÚ -->
+  <section class="screen" id="menu">
+    <div class="wrap">
+      <div class="title-row">
+        <div>
+          <h1>PICADITO<span class="accent">·</span>PIXEL</h1>
+          <p class="tag">Fútbol arcade con pelota libre. Vos sos tu jugador.</p>
+        </div>
+        <p class="small-note">Prototipo v1.15 · local y online</p>
+      </div>
+
+      <div class="modebar"><div class="seg mode" id="optMode"></div><button class="btn-cont" id="btnContTour" hidden></button></div>
+
+      <div class="panel online" id="online" hidden></div>
+      <div class="grid" id="mgrid">
+        <div class="panel" id="side0"></div>
+
+        <div class="panel cfg">
+          <div id="tourPick" hidden>
+            <p class="label">Torneo</p>
+            <div class="seg" id="optTour"></div>
+          </div>
+          <div>
+            <p class="label">Formato</p>
+            <div class="seg" id="optFormat"></div>
+          </div>
+          <div>
+            <p class="label">Duración</p>
+            <div class="seg" id="optDur"></div>
+          </div>
+          <div>
+            <p class="label">Gana quien llega a</p>
+            <div class="seg" id="optCap"></div>
+          </div>
+          <div id="tiePick">
+            <p class="label">Si terminan empatados</p>
+            <div class="seg" id="optTie"></div>
+          </div>
+          <div>
+            <p class="label">Estadísticas</p>
+            <div class="seg" id="optStats"></div>
+          </div>
+          <div>
+            <p class="label">Repetición de goles</p>
+            <div class="seg" id="optReplay"></div>
+          </div>
+          <div>
+            <p class="label">Nivel de la CPU</p>
+            <div class="seg" id="optDiff"></div>
+          </div>
+          <button class="play" id="btnPlay">JUGAR</button>
+          <p class="small-note" id="tieNote">Arqueros siempre con IA durante el partido.</p>
+        </div>
+
+        <div class="panel" id="side1"></div>
+      </div>
+
+      <div class="panel controls">
+        <div>
+          <h3 style="color:var(--p1)">JUGADOR 1</h3>
+          <dl>
+            <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>mover y apuntar</dd>
+            <dt><kbd>Espacio</kbd></dt><dd>patear (mantené = más fuerte)</dd>
+            <dt><kbd>E</kbd></dt><dd>globo / pase por arriba</dd>
+            <dt><kbd>Q</kbd></dt><dd>barrida</dd>
+            <dt><kbd>R</kbd> + dirección</dt><dd>filigrana</dd>
+            <dt><kbd>Shift izq</kbd></dt><dd>sprint</dd>
+          </dl>
+        </div>
+        <div>
+          <h3 style="color:var(--p2)">JUGADOR 2</h3>
+          <dl>
+            <dt><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd></dt><dd>mover y apuntar</dd>
+            <dt><kbd>Enter</kbd> / <kbd>Num 0</kbd></dt><dd>patear</dd>
+            <dt><kbd>Shift der</kbd> / <kbd>Num .</kbd></dt><dd>globo</dd>
+            <dt><kbd>Ctrl der</kbd> / <kbd>Num 2</kbd></dt><dd>barrida</dd>
+            <dt><kbd>Num +</kbd> / <kbd>Num 3</kbd> + dirección</dt><dd>filigrana</dd>
+            <dt><kbd>/</kbd> / <kbd>Num 1</kbd></dt><dd>sprint</dd>
+          </dl>
+        </div>
+        <div>
+          <h3>CÓMO SE PATEA</h3>
+          <dl>
+            <dt>Ángulo</dt><dd>como en HaxBall: la pelota sale en la línea que va del centro de tu jugador al centro de la pelota. Rodeala para elegir para dónde patear; con la pelota a tiro aparece una línea punteada que te muestra la dirección</dd>
+            <dt>Toque y carga</dt><dd>tocá rápido para un pase al ras. Mantené para cargar: el anillo se llena; soltá en la zona verde para un tiro perfecto, en rojo la pelota se eleva</dd>
+            <dt>De primera</dt><dd>si tenés apretado y la pelota entra en tu círculo (se pone amarillo), le pegás en el momento</dd>
+            <dt>Conducción</dt><dd>la pelota es libre: la llevás empujándola con el cuerpo</dd>
+            <dt>Barrida</dt><dd>si tocás la pelota primero, el rival queda desparramado. Si no, es falta y quedás vos en el piso</dd>
+            
+            <dt>Efecto</dt><dd>justo después de patear, mové hacia un costado para curvarla</dd>
+            <dt>Filigranas</dt><dd>adelante: sombrerito · atrás: ruleta de Zidane (o chilena si la pelota viene por el aire) · costados: bicicleta con salida a ese lado. La dirección es respecto de hacia dónde mirás</dd>
+            <dt>Joystick</dt><dd>A patear · X globo · B barrida · RT sprint · stick derecho filigranas · Start pausa</dd>
+            <dt>Celular</dt><dd>joystick a la izquierda (tocá en cualquier lado de esa mitad) y botones a la derecha. Para una filigrana, mantené FILI y mové el joystick</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAUSA -->
+  <section class="screen" id="pause" hidden>
+    <div class="panel modal">
+      <h2>PAUSA</h2>
+      <p class="small-note" id="pauseNote" hidden>El juego dejó de recibir el teclado (por ejemplo, al hacer clic fuera de la cancha). Tocá «Seguir jugando» para retomar.</p>
+      <button class="btn primary" id="btnResume">Seguir jugando</button>
+      <button class="btn" id="btnRestart">Reiniciar partido</button>
+      <button class="btn" id="btnMenu">Volver al menú</button>
+      <button class="btn" id="btnFull" hidden>Pantalla completa</button>
+      <div class="keytest">
+        <p class="label">Probador de teclas</p>
+        <p class="small-note">Apretá W, A, S, D, Espacio… y mirá qué recibe el juego.</p>
+        <pre id="keyTest">(todavía no apretaste ninguna tecla)</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- TORNEO -->
+  <section class="screen" id="tour" hidden>
+    <div class="wrap">
+      <div class="title-row">
+        <div><h1 id="tourTitle">MUNDIAL</h1><p class="tag" id="tourStage"></p></div>
+        <button class="btn-cont" id="btnTourMenu">Menú principal</button>
+      </div>
+      <div class="tgrid">
+        <div class="panel tnext" id="tourNext"></div>
+        <div class="panel" id="tourTables"></div>
+        <div class="panel tfix" id="tourFixture"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="end" hidden>
+    <div class="panel modal">
+      <h2 id="endTitle">FINAL</h2>
+      <div class="final"><span id="endA">ARG</span><span class="num" id="endScore">0 - 0</span><span id="endB">BRA</span></div>
+      <div class="scorers" id="endScorers"></div>
+      <table class="stat-table" id="endStats"></table>
+      <button class="btn primary" id="btnRematch">Revancha</button>
+      <button class="btn" id="btnEndMenu">Volver al menú</button>
+    </div>
+  </section>
+</div>
+<script src="config.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>

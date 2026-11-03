@@ -1,0 +1,18 @@
+# Servidor de salas online de Picadito Pixel (Cloudflare Workers + Durable Objects)
+name = "picadito-online"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+# Opcional: solo deja conectarse a tu sitio. Separá varios con comas.
+# Ejemplo: ALLOWED_ORIGINS = "https://picadito.netlify.app"
+[vars]
+ALLOWED_ORIGINS = ""
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+# En el plan gratis de Cloudflare los Durable Objects usan almacenamiento SQLite
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
